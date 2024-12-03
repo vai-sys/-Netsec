@@ -1,6 +1,5 @@
 
 
-
 // import React from 'react';
 // import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 // import Sidebar from './Components/Sidebar';
@@ -13,15 +12,16 @@
 // import Timeline from './Components/Timeline';
 // import SectorAnalysis from './Components/Sector';
 // import IncidentDetails from './Components/IncidentDetail';
+// import ReportsDetail from './Components/ReportDetail'
 // import './index.css';
 
 // // PrivateRoute component for protecting routes
 // const PrivateRoute = ({ children }) => {
 //   const token = localStorage.getItem('token');
 //   return token ? (
-//     <div className="flex">
+//     <div className="flex min-h-screen bg-black">
 //       <Sidebar />
-//       <main className="flex-grow ml-64 p-8">{children}</main> {/* Adjusted content margin to accommodate sidebar */}
+//       <main className="flex-grow ml-64 p-8 bg-black">{children}</main> {/* Adjust content margin to accommodate sidebar */}
 //     </div>
 //   ) : (
 //     <Navigate to="/auth" />
@@ -73,6 +73,14 @@
 //           element={
 //             <PrivateRoute>
 //               <Reports />
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/reports/:id"
+//           element={
+//             <PrivateRoute>
+//               <ReportsDetail />
 //             </PrivateRoute>
 //           }
 //         />
@@ -130,12 +138,12 @@ import AuthPage from './Components/AuthPage';
 import Dashboard from './Components/Dashboard';
 import Profile from './Components/Profile';
 import Incidents from './Components/Incidents';
-import Reports from './Components/Reports';
+import ReportsList from './Components/Reports';
+import ReportsDetail from './Components/ReportDetail';
 import MapView from './Components/MapView';
 import Timeline from './Components/Timeline';
 import SectorAnalysis from './Components/Sector';
 import IncidentDetails from './Components/IncidentDetail';
-import ReportsDetail from './Components/ReportDetail'
 import './index.css';
 
 // PrivateRoute component for protecting routes
@@ -144,7 +152,7 @@ const PrivateRoute = ({ children }) => {
   return token ? (
     <div className="flex min-h-screen bg-black">
       <Sidebar />
-      <main className="flex-grow ml-64 p-8 bg-black">{children}</main> {/* Adjust content margin to accommodate sidebar */}
+      <main className="flex-grow ml-64 p-8 bg-black">{children}</main>
     </div>
   ) : (
     <Navigate to="/auth" />
@@ -195,7 +203,7 @@ function App() {
           path="/reports"
           element={
             <PrivateRoute>
-              <Reports />
+              <ReportsList />
             </PrivateRoute>
           }
         />
