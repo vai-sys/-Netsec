@@ -28,7 +28,7 @@ const ReportsList = () => {
   const [loading, setLoading] = useState(false);
   const [incidentCount, setIncidentCount] = useState(0);
 
-  // Fetch Reports from Backend
+  
   const fetchReports = async (page = 1) => {
     setLoading(true);
     try {
@@ -58,7 +58,7 @@ const ReportsList = () => {
     setLoading(false);
   };
 
-  // Fetch Incident Count
+  
   const fetchIncidentCount = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -72,7 +72,7 @@ const ReportsList = () => {
     }
   };
 
-  // Initial and filtered reports fetch
+  
   useEffect(() => {
     fetchReports();
     fetchIncidentCount();
@@ -251,3 +251,5 @@ const ReportsList = () => {
 };
 
 export default ReportsList;
+
+

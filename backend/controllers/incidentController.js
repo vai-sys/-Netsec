@@ -97,7 +97,7 @@ exports.getIncidentById = async (req, res) => {
 
 exports.updateIncident = async (req, res) => {
   try {
-    // Ensure only specific fields can be updated
+    
     const updateFields = {
       Platform: req.body.Platform,
       Sector: req.body.Sector,
@@ -173,7 +173,7 @@ exports.getAdvancedIncidentMap = async (req, res) => {
       }
     ]);
 
-    // Add a check for empty results
+   
     if (incidents.length === 0) {
       return res.status(404).json({ message: 'No incidents found' });
     }
@@ -190,7 +190,7 @@ exports.getAdvancedIncidentMap = async (req, res) => {
 
 exports.getSectorThreatAnalysis = async (req, res, next) => {
   try {
-    // Aggregate analysis of incidents by sector and threat level
+   
     const sectorThreatAnalysis = await Incident.aggregate([
       {
         $group: {
