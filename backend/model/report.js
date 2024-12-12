@@ -1,58 +1,62 @@
 const mongoose = require('mongoose');
 
 const ReportSchema = new mongoose.Schema({
-  Report_ID: { 
-    type: String, 
-    required: true, 
-    unique: true 
-  },
-  Reporter: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
-  },
-  Incident: {
+  Reporter: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Incident',
+    ref: 'User',
     required: true
   },
-  Date: { 
-    type: Date, 
-    default: Date.now 
+  Title: {
+    type: String,
+    required: [true, 'Title is required']
   },
-  Incident_Type: { 
-    type: String, 
-    required: true 
+  Description: {
+    type: String,
+    required: [true, 'Description is required']
   },
-  Threat_Level: { 
-    type: String, 
-    required: true 
+  Incident_Type: {
+    type: String,
+    required: [true, 'Incident Type is required']
   },
-  Location: { 
-    type: String, 
-    required: true 
+  Threat_Level: {
+    type: String,
+    required: [true, 'Severity is required']
   },
-  Description: { 
-    type: String, 
-    required: true 
+  Location: {
+    type: String
   },
-  Status: { 
-    type: String, 
-    enum: ['Pending', 'Reviewed', 'Under Investigation', 'Closed'], 
-    default: 'Pending' 
+  Additional_Notes: {
+    type: String
+  },
+  Report_ID: {
+    type: String,
+    unique: true
+  },
+  Status: {
+    type: String,
+    enum: ['Pending', 'Reviewed', 'Under Investigation', 'Closed'],
+    default: 'Pending'
+  },
+  Date: {
+    type: Date,
+    default: Date.now
   }
 }, { timestamps: true });
 
-// Pre-save hook to generate unique Report_ID
 ReportSchema.pre('save', async function(next) {
   if (this.isNew) {
-    const lastReport = await this.constructor.findOne().sort({ createdAt: -1 });
-    const newReportNumber = lastReport 
-      ? parseInt(lastReport.Report_ID.split('-')[1]) + 1 
-      : 1000;
-    this.Report_ID = `RPT-${newReportNumber}`;
+    try {
+      const lastReport = await this.constructor.findOne().sort({ createdAt: -1 });
+      const newReportNumber = lastReport
+        ? parseInt(lastReport.Report_ID.split('-')[1]) + 1
+        : 1000;
+      this.Report_ID = `RPT-${newReportNumber}`;
+    } catch (error) {
+      return next(error);
+    }
   }
   next();
 });
 
-module.exports = mongoose.model('Report', ReportSchema);
+const Report = mongoose.model('Report', ReportSchema);
+module.exports = Report;

@@ -1,392 +1,455 @@
-// import React, { useState, useEffect } from 'react';
-// import { 
-//   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, 
-//   PieChart, Pie, Cell, 
-//   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, 
-//   ComposedChart, Line, Area 
-// } from 'recharts';
-// import { 
-//   ShieldAlert, TrendingUp, AlertTriangle, AlertCircle, 
-//   BarChart3, PieChart as PieChartIcon 
-// } from 'lucide-react';
-
-// const SectorThreatAnalysisDashboard = () => {
-//   const [sectorData, setSectorData] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-
-//   useEffect(() => {
-//     const fetchSectorData = async () => {
-//       try {
-//         const response = await fetch('http://localhost:5000/api/incidents/sector-threat-analysis', {
-//           headers: {
-//             'Authorization': `Bearer ${localStorage.getItem('token')}`
-//           }
-//         });
-
-//         if (!response.ok) {
-//           throw new Error('Failed to fetch sector threat analysis');
-//         }
-
-//         const responseData = await response.json();
-//         setSectorData(responseData.data);
-//         setLoading(false);
-//       } catch (error) {
-//         console.error('Error fetching sector data:', error);
-//         setError(error.message);
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchSectorData();
-//   }, []); // Empty dependency array ensures it only runs once on mount
-
-//   // Error and Loading States
-//   if (error) {
-//     return (
-//       <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 text-red-500 flex flex-col justify-center items-center p-8">
-//         <AlertCircle className="w-24 h-24 mb-4 text-red-600 animate-pulse" />
-//         <h1 className="text-3xl font-bold mb-4 text-red-400">Threat Analysis Error</h1>
-//         <p className="text-xl text-center text-red-300">{error}</p>
-//         <button 
-//           onClick={() => window.location.reload()}
-//           disabled={loading} // Disable retry while loading
-//           className="mt-6 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition transform hover:scale-105"
-//         >
-//           {loading ? 'Retrying...' : 'Retry Fetch'}
-//         </button>
-//       </div>
-//     );
-//   }
-
-//   // Loading State
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-black to-gray-900 text-green-400">
-//         <div className="animate-pulse text-2xl flex items-center">
-//           <ShieldAlert className="mr-4 animate-bounce w-12 h-12" />
-//           Loading Threat Analysis...
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Prepare data for visualization
-//   const threatLevelColors = {
-//     'Low': '#10B981',      // Green
-//     'Medium': '#FBBF24',   // Amber
-//     'High': '#F87171',     // Red
-//     'Critical': '#EF4444'  // Dark Red
-//   };
-
-//   // Aggregate threat level data across all sectors
-//   const aggregatedThreatLevels = sectorData.reduce((acc, sector) => {
-//     sector.threatLevels.forEach(level => {
-//       const existingLevel = acc.find(item => item.level === level.level);
-//       if (existingLevel) {
-//         existingLevel.totalIncidents += level.totalIncidents;
-//         existingLevel.unsolvedIncidents += level.unsolvedIncidents;
-//       } else {
-//         acc.push({
-//           level: level.level,
-//           totalIncidents: level.totalIncidents,
-//           unsolvedIncidents: level.unsolvedIncidents,
-//           color: threatLevelColors[level.level]
-//         });
-//       }
-//     });
-//     return acc;
-//   }, []);
-
-//   // Sector-wise total incidents for bar chart
-//   const sectorIncidentsData = sectorData.map(sector => ({
-//     sector: sector.sector,
-//     totalIncidents: sector.totalSectorIncidents,
-//     criticalIncidents: sector.threatLevels.find(l => l.level === 'Critical')?.totalIncidents || 0
-//   })).sort((a, b) => b.totalIncidents - a.totalIncidents);
-
-//   // Detailed threat level data for radar chart
-//   const radarData = sectorData.map(sector => ({
-//     sector: sector.sector,
-//     Low: sector.threatLevels.find(l => l.level === 'Low')?.totalIncidents || 0,
-//     Medium: sector.threatLevels.find(l => l.level === 'Medium')?.totalIncidents || 0,
-//     High: sector.threatLevels.find(l => l.level === 'High')?.totalIncidents || 0,
-//     Critical: sector.threatLevels.find(l => l.level === 'Critical')?.totalIncidents || 0
-//   }));
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 text-green-400 p-8 space-y-8">
-//       <div className="text-center mb-12">
-//         <h1 className="text-4xl font-bold text-green-300 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-//           Sector Threat Intelligence
-//         </h1>
-//       </div>
-
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-//         {/* Threat Level Pie Chart */}
-//         <div className="bg-gray-900 rounded-2xl p-6 shadow-2xl border-2 border-green-800">
-//           <h2 className="text-2xl font-semibold mb-4 flex items-center">
-//             <PieChartIcon className="mr-2" /> Threat Level Distribution
-//           </h2>
-//           <PieChart width={400} height={300}>
-//             <Pie
-//               data={aggregatedThreatLevels}
-//               cx="50%"
-//               cy="50%"
-//               labelLine={false}
-//               outerRadius={120}
-//               fill="#8884d8"
-//               dataKey="totalIncidents"
-//             >
-//               {aggregatedThreatLevels.map((entry, index) => (
-//                 <Cell key={`cell-${index}`} fill={entry.color} />
-//               ))}
-//             </Pie>
-//             <Tooltip 
-//               contentStyle={{ 
-//                 backgroundColor: '#111827', 
-//                 borderColor: '#10B981',
-//                 color: '#10B981'
-//               }} 
-//             />
-//             <Legend 
-//               iconType="circle"
-//               iconSize={10}
-//               wrapperStyle={{ color: '#10B981' }}
-//             />
-//           </PieChart>
-//         </div>
-
-//         {/* Sector Incidents Composed Chart */}
-//         <div className="bg-gray-900 rounded-2xl p-6 shadow-2xl border-2 border-green-800">
-//           <h2 className="text-2xl font-semibold mb-4 flex items-center">
-//             <BarChart3 className="mr-2" /> Sector Total Incidents
-//           </h2>
-//           <ComposedChart width={400} height={300} data={sectorIncidentsData}>
-//             <XAxis dataKey="sector" stroke="#10B981" />
-//             <YAxis stroke="#10B981" />
-//             <Tooltip 
-//               contentStyle={{ 
-//                 backgroundColor: '#111827', 
-//                 borderColor: '#10B981',
-//                 color: '#10B981'
-//               }} 
-//             />
-//             <Area dataKey="totalIncidents" fill="#10B981" fillOpacity={0.3} />
-//             <Bar dataKey="criticalIncidents" barSize={20} fill="#EF4444" />
-//             <Line type="monotone" dataKey="totalIncidents" stroke="#FBBF24" />
-//           </ComposedChart>
-//         </div>
-
-//         {/* Radar Chart for Comprehensive Threat Analysis */}
-//         <div className="md:col-span-2 bg-gray-900 rounded-2xl p-6 shadow-2xl border-2 border-green-800">
-//           <h2 className="text-2xl font-semibold mb-4 flex items-center">
-//             <AlertTriangle className="mr-2" /> Comprehensive Sector Threat Radar
-//           </h2>
-//           <RadarChart 
-//             cx="50%" 
-//             cy="50%" 
-//             outerRadius={150} 
-//             width={600} 
-//             height={400} 
-//             data={radarData}
-//           >
-//             <PolarGrid stroke="#10B981" />
-//             <PolarAngleAxis dataKey="sector" stroke="#10B981" />
-//             <PolarRadiusAxis angle={30} domain={[0, 150]} stroke="#10B981" />
-//             <Radar 
-//               name="Low"
-//               dataKey="Low"
-//               stroke="#10B981"
-//               fill="#10B981"
-//               fillOpacity={0.6}
-//             />
-//             <Radar 
-//               name="Medium"
-//               dataKey="Medium"
-//               stroke="#FBBF24"
-//               fill="#FBBF24"
-//               fillOpacity={0.6}
-//             />
-//             <Radar 
-//               name="High"
-//               dataKey="High"
-//               stroke="#F87171"
-//               fill="#F87171"
-//               fillOpacity={0.6}
-//             />
-//             <Radar 
-//               name="Critical"
-//               dataKey="Critical"
-//               stroke="#EF4444"
-//               fill="#EF4444"
-//               fillOpacity={0.6}
-//             />
-//           </RadarChart>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default SectorThreatAnalysisDashboard;
-
 import React, { useState, useEffect } from 'react';
-import { 
-  PieChart, Pie, Cell, Tooltip, Legend
-} from 'recharts';
-import { 
-  ShieldAlert, AlertCircle
-} from 'lucide-react';
+import { ShieldCheck, TrendingUp, AlertOctagon } from 'lucide-react';
 
-const SectorThreatAnalysisDashboard = () => {
-  const [sectorData, setSectorData] = useState(null);
+const SectorThreatPieDashboard = () => {
+  const [analysisData, setAnalysisData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchSectorData = async () => {
+    const fetchSectorThreatAnalysis = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/incidents/sector-threat-analysis', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        const mockData = [
+          {
+            sector: "Energy",
+            totalSectorIncidents: 95,
+            criticalIncidents: 22,
+            threatData: [
+              { level: "High", totalLevelIncidents: 22 },
+              { level: "Medium", totalLevelIncidents: 43 },
+              { level: "Low", totalLevelIncidents: 30 }
+            ],
+            keyThreats: [
+              "Grid infrastructure vulnerabilities",
+              "Cyber attacks on power distribution systems",
+              "IoT device security gaps"
+            ]
+          },
+          {
+            sector: "Transportation",
+            totalSectorIncidents: 78,
+            criticalIncidents: 15,
+            threatData: [
+              { level: "High", totalLevelIncidents: 15 },
+              { level: "Medium", totalLevelIncidents: 35 },
+              { level: "Low", totalLevelIncidents: 28 }
+            ],
+            keyThreats: [
+              "Traffic management system breaches",
+              "GPS spoofing risks",
+              "Autonomous vehicle network intrusions"
+            ]
+          },
+          {
+            sector: "Banking and Finance",
+            totalSectorIncidents: 120,
+            criticalIncidents: 35,
+            threatData: [
+              { level: "High", totalLevelIncidents: 35 },
+              { level: "Medium", totalLevelIncidents: 55 },
+              { level: "Low", totalLevelIncidents: 30 }
+            ],
+            keyThreats: [
+              "Financial transaction fraud",
+              "Banking malware attacks",
+              "Cryptocurrency wallet exploits"
+            ]
+          },
+          {
+            sector: "Telecommunications",
+            totalSectorIncidents: 85,
+            criticalIncidents: 20,
+            threatData: [
+              { level: "High", totalLevelIncidents: 20 },
+              { level: "Medium", totalLevelIncidents: 40 },
+              { level: "Low", totalLevelIncidents: 25 }
+            ],
+            keyThreats: [
+              "Network infrastructure vulnerabilities",
+              "Mobile network interception",
+              "DDoS attacks on communication networks"
+            ]
+          },
+          {
+            sector: "Defense",
+            totalSectorIncidents: 65,
+            criticalIncidents: 25,
+            threatData: [
+              { level: "High", totalLevelIncidents: 25 },
+              { level: "Medium", totalLevelIncidents: 30 },
+              { level: "Low", totalLevelIncidents: 10 }
+            ],
+            keyThreats: [
+              "Military communication interception",
+              "Classified information breaches",
+              "Satellite communication vulnerabilities"
+            ]
+          },
+          {
+            sector: "Space",
+            totalSectorIncidents: 45,
+            criticalIncidents: 12,
+            threatData: [
+              { level: "High", totalLevelIncidents: 12 },
+              { level: "Medium", totalLevelIncidents: 20 },
+              { level: "Low", totalLevelIncidents: 13 }
+            ],
+            keyThreats: [
+              "Satellite hacking attempts",
+              "Space communication disruption",
+              "Ground station cyber threats"
+            ]
+          },
+          {
+            sector: "Government Services",
+            totalSectorIncidents: 110,
+            criticalIncidents: 30,
+            threatData: [
+              { level: "High", totalLevelIncidents: 30 },
+              { level: "Medium", totalLevelIncidents: 50 },
+              { level: "Low", totalLevelIncidents: 30 }
+            ],
+            keyThreats: [
+              "Citizen data privacy breaches",
+              "Government system infiltrations",
+              "E-governance platform vulnerabilities"
+            ]
           }
-        });
+        ];
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch sector threat analysis');
-        }
-
-        const responseData = await response.json();
-        setSectorData(responseData.data);
+        setAnalysisData(mockData);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching sector data:', error);
-        setError(error.message);
+        console.error("Error fetching sector threat analysis:", error);
         setLoading(false);
       }
     };
 
-    fetchSectorData();
+    fetchSectorThreatAnalysis();
   }, []);
 
-  // Error and Loading States
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 text-red-500 flex flex-col justify-center items-center p-8">
-        <AlertCircle className="w-24 h-24 mb-4 text-red-600 animate-pulse" />
-        <h1 className="text-3xl font-bold mb-4 text-red-400">Threat Analysis Error</h1>
-        <p className="text-xl text-center text-red-300">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-6 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition transform hover:scale-105"
-        >
-          Retry Fetch
-        </button>
-      </div>
-    );
-  }
+  const getThreatLevelColor = (level) => {
+    switch(level) {
+      case 'High': return 'text-red-500 bg-red-900/30';
+      case 'Medium': return 'text-yellow-500 bg-yellow-900/30';
+      case 'Low': return 'text-green-500 bg-green-900/30';
+      default: return 'text-gray-500 bg-gray-900/30';
+    }
+  };
 
-  // Loading State
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-black to-gray-900 text-green-400">
-        <div className="animate-pulse text-2xl flex items-center">
-          <ShieldAlert className="mr-4 animate-bounce w-12 h-12" />
-          Loading Threat Analysis...
+      <div className="bg-black min-h-screen flex items-center justify-center">
+        <div className="text-3xl font-bold text-green-500 animate-pulse">
+          Scanning National Cyber Infrastructure...
         </div>
       </div>
     );
   }
 
-  // Prepare threat level distribution data
-  const threatLevelColors = {
-    'Low': '#10B981',      // Green
-    'Medium': '#FBBF24',   // Amber
-    'High': '#F87171',     // Red
-    'Critical': '#EF4444'  // Dark Red
-  };
-
-  // Aggregate threat level data
-  const threatLevelDistribution = sectorData.reduce((acc, sector) => {
-    sector.threatLevels.forEach(level => {
-      const existingLevel = acc.find(item => item.level === level.level);
-      if (existingLevel) {
-        existingLevel.totalIncidents += level.totalIncidents;
-        existingLevel.unsolvedIncidents += level.unsolvedIncidents;
-      } else {
-        acc.push({
-          level: level.level,
-          totalIncidents: level.totalIncidents,
-          unsolvedIncidents: level.unsolvedIncidents,
-          color: threatLevelColors[level.level]
-        });
-      }
-    });
-    return acc;
-  }, []);
-
-  // Custom Tooltip for Threat Level Distribution
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg border border-green-600">
-          <p className="text-green-300 font-bold">{data.level} Threat Level</p>
-          <p className="text-white">Total Incidents: {data.totalIncidents}</p>
-          <p className="text-red-400">Unsolved Incidents: {data.unsolvedIncidents}</p>
-          <p className="text-yellow-300">Incident Percentage: {((data.totalIncidents / sectorData.reduce((sum, sector) => sum + sector.totalSectorIncidents, 0)) * 100).toFixed(2)}%</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 text-green-400 p-8 space-y-8">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-green-300 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-          Sector Threat Intelligence
-        </h1>
-      </div>
+    <div className="bg-black text-green-300 min-h-screen p-8">
+      <div className="container mx-auto">
+        <header className="flex items-center justify-between mb-10 border-b border-green-800 pb-4">
+          <h1 className="text-4xl font-bold flex items-center">
+            <ShieldCheck className="mr-4 text-green-500" size={48} />
+            NCIIPC Sector Threat Analysis
+          </h1>
+          <div className="text-sm text-green-600">
+            Last Updated: {new Date().toLocaleDateString()}
+          </div>
+        </header>
 
-      <div className="flex justify-center items-center">
-        <div className="bg-gray-900 rounded-2xl p-6 shadow-2xl border-2 border-green-800 w-full max-w-2xl">
-          <h2 className="text-2xl font-semibold mb-4 flex items-center justify-center">
-            <ShieldAlert className="mr-2" /> Threat Level Distribution
-          </h2>
-          
-          <PieChart width={600} height={400}>
-            <Pie
-              data={threatLevelDistribution}
-              cx="50%"
-              cy="50%"
-              labelLine={true}
-              outerRadius={150}
-              fill="#8884d8"
-              dataKey="totalIncidents"
-              label={({ level, totalIncidents, percent }) => `${level}: ${totalIncidents} (${(percent * 100).toFixed(2)}%)`}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {analysisData.map((sector, index) => (
+            <div 
+              key={index} 
+              className={`
+                border border-green-800 rounded-2xl p-6 
+                transition-all duration-300 
+                hover:border-green-600 hover:shadow-2xl
+                hover:scale-[1.02]
+                ${getThreatLevelColor(
+                  sector.criticalIncidents / sector.totalSectorIncidents > 0.3 ? 'High' : 
+                  sector.criticalIncidents / sector.totalSectorIncidents > 0.15 ? 'Medium' : 'Low'
+                )}
+              `}
             >
-              {threatLevelDistribution.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              layout="vertical" 
-              verticalAlign="middle" 
-              align="right"
-              formatter={(value, entry) => (
-                <span className="text-white">
-                  {value} Threat: {entry.payload.totalIncidents} Incidents
-                </span>
-              )}
-            />
-          </PieChart>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold text-green-300">
+                  {sector.sector} Sector
+                </h2>
+                <AlertOctagon 
+                  className={`
+                    ${sector.criticalIncidents / sector.totalSectorIncidents > 0.3 ? 'text-red-500' : 
+                      sector.criticalIncidents / sector.totalSectorIncidents > 0.15 ? 'text-yellow-500' : 'text-green-500'}
+                  `} 
+                  size={32}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-center mb-6">
+                <div className="bg-black/40 rounded-lg p-3">
+                  <p className="text-xs uppercase text-green-600 mb-1">Total Incidents</p>
+                  <p className="text-xl font-bold text-green-400">{sector.totalSectorIncidents}</p>
+                </div>
+                <div className="bg-black/40 rounded-lg p-3">
+                  <p className="text-xs uppercase text-green-600 mb-1">Critical Incidents</p>
+                  <p className="text-xl font-bold text-red-500">{sector.criticalIncidents}</p>
+                </div>
+              </div>
+
+              <div className="bg-black/40 rounded-lg p-4 mb-6">
+                <p className="text-sm uppercase text-green-600 mb-3">Threat Level Distribution</p>
+                <div className="flex justify-between items-center space-x-2">
+                  {sector.threatData.map((threat, tIndex) => (
+                    <div key={tIndex} className="flex-1">
+                      <div 
+                        className={`
+                          h-2 w-full rounded-full 
+                          ${threat.level === 'High' ? 'bg-red-900' : 
+                            threat.level === 'Medium' ? 'bg-yellow-900' : 'bg-green-900'}
+                        `}
+                      >
+                        <div 
+                          className={`
+                            h-full rounded-full 
+                            ${threat.level === 'High' ? 'bg-red-600' : 
+                              threat.level === 'Medium' ? 'bg-yellow-600' : 'bg-green-600'}
+                          `}
+                          style={{
+                            width: `${(threat.totalLevelIncidents / sector.totalSectorIncidents) * 100}%`
+                          }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-xs text-green-700">{threat.level}</span>
+                        <span className="text-xs text-green-500">
+                          {threat.totalLevelIncidents}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-black/40 rounded-lg p-4">
+                <p className="text-sm uppercase text-green-600 mb-3">Key Threats</p>
+                <ul className="space-y-2">
+                  {sector.keyThreats.map((threat, tIndex) => (
+                    <li 
+                      key={tIndex} 
+                      className="text-xs text-green-400 pl-4 relative before:content-['•'] before:absolute before:left-0 before:text-green-600"
+                    >
+                      {threat}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 bg-black/50 border border-green-800 rounded-2xl p-8">
+          <h3 className="text-2xl font-semibold mb-6 flex items-center text-green-300">
+            <TrendingUp className="mr-4 text-green-500" size={32} />
+            Strategic Cyber Infrastructure Insights
+          </h3>
+          <ul className="space-y-4 text-green-400">
+            {[
+              "Multi-sector cyber vulnerabilities detected",
+              "Critical infrastructure requires enhanced security protocols",
+              "Proactive cross-sector threat mitigation strategies needed",
+              "Continuous monitoring and adaptive response critical"
+            ].map((insight, index) => (
+              <li 
+                key={index} 
+                className="pl-6 relative before:content-['•'] before:absolute before:left-0 before:text-green-600"
+              >
+                {insight}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
   );
 };
 
-export default SectorThreatAnalysisDashboard;
+export default SectorThreatPieDashboard;
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import { ShieldCheck, TrendingUp, AlertOctagon } from 'lucide-react';
+
+// const SectorThreatPieDashboard = () => {
+//   const [analysisData, setAnalysisData] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     const fetchSectorThreatAnalysis = async () => {
+//       try {
+//         const mockData = [
+//           {
+//             sector: "Finance",
+//             totalSectorIncidents: 120,
+//             totalUnsolvedIncidents: 45,
+//             correlationIndex: 0.375,
+//             threatData: [
+//               { level: "High", totalLevelIncidents: 30 },
+//               { level: "Medium", totalLevelIncidents: 50 },
+//               { level: "Low", totalLevelIncidents: 40 }
+//             ]
+//           },
+//           {
+//             sector: "Technology",
+//             totalSectorIncidents: 95,
+//             totalUnsolvedIncidents: 35,
+//             correlationIndex: 0.368,
+//             threatData: [
+//               { level: "High", totalLevelIncidents: 25 },
+//               { level: "Medium", totalLevelIncidents: 40 },
+//               { level: "Low", totalLevelIncidents: 30 }
+//             ]
+//           }
+//         ];
+
+//         setAnalysisData(mockData);
+//         setLoading(false);
+//       } catch (error) {
+//         console.error("Error fetching sector threat analysis:", error);
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchSectorThreatAnalysis();
+//   }, []);
+
+//   const getThreatColor = (correlationIndex) => {
+//     if (correlationIndex > 0.5) return 'text-red-500';
+//     if (correlationIndex > 0.3) return 'text-yellow-500';
+//     return 'text-green-500';
+//   };
+
+//   const getCorrelationBackground = (correlationIndex) => {
+//     if (correlationIndex > 0.5) return 'bg-red-900/30';
+//     if (correlationIndex > 0.3) return 'bg-yellow-900/30';
+//     return 'bg-green-900/30';
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="bg-black min-h-screen flex items-center justify-center">
+//         <div className="text-3xl font-bold text-green-500 animate-pulse">
+//           Scanning Threat Landscape...
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="bg-black text-green-300 min-h-screen p-8">
+//       <div className="container mx-auto">
+//         <header className="flex items-center justify-between mb-10 border-b border-green-800 pb-4">
+//           <h1 className="text-4xl font-bold flex items-center">
+//             <ShieldCheck className="mr-4 text-green-500" size={48} />
+//             Sector Threat Analysis
+//           </h1>
+//           <div className="text-sm text-green-600">
+//             Last Updated: {new Date().toLocaleDateString()}
+//           </div>
+//         </header>
+
+//         <div className="grid md:grid-cols-2 gap-8">
+//           {analysisData.map((sector, index) => (
+//             <div 
+//               key={index} 
+//               className={`
+//                 ${getCorrelationBackground(sector.correlationIndex)}
+//                 border border-green-800 rounded-2xl p-6 
+//                 transition-all duration-300 
+//                 hover:border-green-600 hover:shadow-2xl
+//                 hover:scale-[1.02]
+//               `}
+//             >
+//               <div className="flex justify-between items-center mb-6">
+//                 <h2 className="text-2xl font-semibold text-green-300">
+//                   {sector.sector} Sector
+//                 </h2>
+//                 <AlertOctagon 
+//                   className={`
+//                     ${getThreatColor(sector.correlationIndex)}
+//                   `} 
+//                   size={32}
+//                 />
+//               </div>
+
+//               <div className="grid grid-cols-3 gap-4 text-center mb-6">
+//                 {[
+//                   { 
+//                     label: "Total Incidents", 
+//                     value: sector.totalSectorIncidents,
+//                     color: "text-green-400"
+//                   },
+//                   { 
+//                     label: "Unsolved", 
+//                     value: sector.totalUnsolvedIncidents,
+//                     color: "text-yellow-500"
+//                   },
+//                   { 
+//                     label: "Correlation", 
+//                     value: `${(sector.correlationIndex * 100).toFixed(1)}%`,
+//                     color: getThreatColor(sector.correlationIndex)
+//                   }
+//                 ].map((stat, statIndex) => (
+//                   <div key={statIndex} className="bg-black/40 rounded-lg p-3">
+//                     <p className="text-xs uppercase text-green-600 mb-1">{stat.label}</p>
+//                     <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+//                   </div>
+//                 ))}
+//               </div>
+
+//               <div className="bg-black/40 rounded-lg p-4">
+//                 <p className="text-sm uppercase text-green-600 mb-3">Threat Level Distribution</p>
+//                 <div className="flex justify-between items-center space-x-2">
+//                   {sector.threatData.map((threat, tIndex) => (
+//                     <div key={tIndex} className="flex-1">
+//                       <div 
+//                         className={`
+//                           h-2 w-full rounded-full 
+//                           ${threat.level === 'High' ? 'bg-red-900' : 
+//                             threat.level === 'Medium' ? 'bg-yellow-900' : 'bg-green-900'}
+//                         `}
+//                       >
+//                         <div 
+//                           className={`
+//                             h-full rounded-full 
+//                             ${threat.level === 'High' ? 'bg-red-600' : 
+//                               threat.level === 'Medium' ? 'bg-yellow-600' : 'bg-green-600'}
+//                           `}
+//                           style={{
+//                             width: `${(threat.totalLevelIncidents / sector.totalSectorIncidents) * 100}%`
+//                           }}
+//                         ></div>
+//                       </div>
+//                       <div className="flex justify-between mt-1">
+//                         <span className="text-xs text-green-700">{threat.level}</span>
+//                         <span className="text-xs text-green-500">
+//                           {threat.totalLevelIncidents}
+//                         </span>
+//                       </div>
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+
+        
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default SectorThreatPieDashboard;

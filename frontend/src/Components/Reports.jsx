@@ -82,7 +82,7 @@ const ReportsList = () => {
     filters.threatLevel
   ]);
 
-  // Download Reports
+  
   const downloadReports = async (format) => {
     try {
       const token = localStorage.getItem('token');
@@ -251,5 +251,4 @@ const ReportsList = () => {
 };
 
 export default ReportsList;
-
 

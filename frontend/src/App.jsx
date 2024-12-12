@@ -5,17 +5,17 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './Components/Sidebar';
 import AuthPage from './Components/AuthPage';
-import Dashboard from './Components/Dashboard';
 import Profile from './Components/Profile';
 import Incidents from './Components/Incidents';
-import ReportsList from './Components/Reports';
-import ReportsDetail from './Components/ReportDetail';
-import MapView from './Components/MapView';
+
+// import MapView from './Components/MapView';
 import Timeline from './Components/Timeline';
 import SectorAnalysis from './Components/Sector';
 import IncidentDetails from './Components/IncidentDetail';
 import './index.css';
-import CreateReport from './Components/Createreport';
+
+
+import Dashboard from './Components/Dashboard'
 
 
 const PrivateRoute = ({ children }) => {
@@ -34,10 +34,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Route */}
+     
         <Route path="/auth" element={<AuthPage />} />
 
-        {/* Protected Routes */}
+        
         <Route
           path="/dashboard"
           element={
@@ -70,30 +70,7 @@ function App() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/reports"
-          element={
-            <PrivateRoute>
-              <ReportsList />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/reports/:id"
-          element={
-            <PrivateRoute>
-              <ReportsDetail />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/map"
-          element={
-            <PrivateRoute>
-              <MapView />
-            </PrivateRoute>
-          }
-        />
+     
         <Route
           path="/timeline"
           element={
@@ -110,14 +87,7 @@ function App() {
             </PrivateRoute>
           }
         />
-          <Route
-          path="/reports/create"
-          element={
-            <PrivateRoute>
-              <CreateReport />
-            </PrivateRoute>
-          }
-        />
+         
 
         
         <Route
@@ -131,7 +101,7 @@ function App() {
           }
         />
 
-        {/* Fallback route */}
+    
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </Router>

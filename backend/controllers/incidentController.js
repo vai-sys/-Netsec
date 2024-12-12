@@ -1,6 +1,10 @@
 const Incident = require('../model/Incident');
 const mongoose = require('mongoose');
 
+const createError = require('http-errors');
+
+
+
 exports.createIncident = async (req, res) => {
   try {
   
@@ -188,102 +192,105 @@ exports.getAdvancedIncidentMap = async (req, res) => {
   }
 };
 
+
 exports.getSectorThreatAnalysis = async (req, res, next) => {
   try {
-   
-    const sectorThreatAnalysis = await Incident.aggregate([
+    const sectorThreatCorrelation = await Incident.aggregate([
       {
         $group: {
-          _id: {
-            sector: '$Sector',
-            threatLevel: '$Threat_Level'
-          },
+          _id: '$Sector',
           totalIncidents: { $sum: 1 },
-          unsolvedIncidents: { 
-            $sum: { $cond: [{ $eq: ['$Incident_Solved', false] }, 1, 0] } 
+          unsolvedIncidents: {
+            $sum: { $cond: [{ $eq: ['$Incident_Solved', false] }, 1, 0] }
           },
-          mostRecentIncident: { $max: '$Date' }
-        }
-      },
-      {
-        $group: {
-          _id: '$_id.sector',
-          threatLevels: {
+          threatData: {
             $push: {
-              level: '$_id.threatLevel',
-              totalIncidents: '$totalIncidents',
-              unsolvedIncidents: '$unsolvedIncidents',
-              mostRecentIncident: '$mostRecentIncident'
+              level: '$Threat_Level',
+              totalLevelIncidents: { $sum: 1 }
             }
-          },
-          totalSectorIncidents: { $sum: '$totalIncidents' }
+          }
         }
       },
       {
         $project: {
           sector: '$_id',
-          threatLevels: 1,
-          totalSectorIncidents: 1,
-          _id: 0
+          totalSectorIncidents: '$totalIncidents',
+          totalUnsolvedIncidents: '$unsolvedIncidents',
+          threatData: '$threatData',
+          correlationIndex: { 
+            $cond: [
+              { $gt: ['$totalIncidents', 0] },
+              { $divide: ['$unsolvedIncidents', '$totalIncidents'] },
+              0
+            ]
+          }
         }
       },
       { $sort: { totalSectorIncidents: -1 } }
     ]);
 
+    if (sectorThreatCorrelation.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No incidents found'
+      });
+    }
+
     res.json({
       success: true,
-      count: sectorThreatAnalysis.length,
-      data: sectorThreatAnalysis
+      count: sectorThreatCorrelation.length,
+      data: sectorThreatCorrelation
     });
   } catch (error) {
-    next(createError(500, 'Error retrieving sector threat analysis'));
+    console.error('Sector Threat Analysis Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving sector threat analysis',
+      error: error.message
+    });
   }
 };
 
-
-exports.getIncidentTimeline = async (req, res, next) => {
-  try {
-   
-    const { 
-      startDate, 
-      endDate, 
-      threatLevel, 
-      sector, 
-      incidentType 
+exports.getIncidentTimeline = async (req, res, next) => {   
+  try {         
+    const {
+      startDate,
+      endDate,
+      threatLevel,
+      sector,
+      incidentType
     } = req.query;
 
-   
     const query = {};
-    
+
     if (startDate && endDate) {
       query.Date = {
         $gte: new Date(startDate),
         $lte: new Date(endDate)
       };
     }
-    
+
     if (threatLevel) {
       query.Threat_Level = threatLevel;
     }
-    
+
     if (sector) {
       query.Sector = sector;
     }
-    
+
     if (incidentType) {
       query.Incident_Type = incidentType;
     }
 
-   
     const timeline = await Incident.find(query)
       .select('Incident_ID Date Sector Incident_Type Threat_Level Location Description Incident_Solved Coordinates')
       .sort({ Date: -1 })
       .lean();
 
-   
     const timelineMetrics = {
       totalIncidents: timeline.length,
       threatLevelBreakdown: {},
+      sectorBreakdown: {},
       solvedStatus: {
         solved: timeline.filter(incident => incident.Incident_Solved).length,
         unsolved: timeline.filter(incident => !incident.Incident_Solved).length
@@ -291,10 +298,17 @@ exports.getIncidentTimeline = async (req, res, next) => {
     };
 
     timeline.forEach(incident => {
+      // Threat Level Breakdown
       if (!timelineMetrics.threatLevelBreakdown[incident.Threat_Level]) {
         timelineMetrics.threatLevelBreakdown[incident.Threat_Level] = 0;
       }
       timelineMetrics.threatLevelBreakdown[incident.Threat_Level]++;
+
+      // Sector Breakdown
+      if (!timelineMetrics.sectorBreakdown[incident.Sector]) {
+        timelineMetrics.sectorBreakdown[incident.Sector] = 0;
+      }
+      timelineMetrics.sectorBreakdown[incident.Sector]++;
     });
 
     res.json({
@@ -304,5 +318,73 @@ exports.getIncidentTimeline = async (req, res, next) => {
     });
   } catch (error) {
     next(createError(500, 'Error retrieving incident timeline'));
-  }
+  } 
 };
+
+
+
+// exports.getIncidentTimeline = async (req, res, next) => {
+//   try {
+   
+//     const { 
+//       startDate, 
+//       endDate, 
+//       threatLevel, 
+//       sector, 
+//       incidentType 
+//     } = req.query;
+
+   
+//     const query = {};
+    
+//     if (startDate && endDate) {
+//       query.Date = {
+//         $gte: new Date(startDate),
+//         $lte: new Date(endDate)
+//       };
+//     }
+    
+//     if (threatLevel) {
+//       query.Threat_Level = threatLevel;
+//     }
+    
+//     if (sector) {
+//       query.Sector = sector;
+//     }
+    
+//     if (incidentType) {
+//       query.Incident_Type = incidentType;
+//     }
+
+   
+//     const timeline = await Incident.find(query)
+//       .select('Incident_ID Date Sector Incident_Type Threat_Level Location Description Incident_Solved Coordinates')
+//       .sort({ Date: -1 })
+//       .lean();
+
+   
+//     const timelineMetrics = {
+//       totalIncidents: timeline.length,
+//       threatLevelBreakdown: {},
+//       solvedStatus: {
+//         solved: timeline.filter(incident => incident.Incident_Solved).length,
+//         unsolved: timeline.filter(incident => !incident.Incident_Solved).length
+//       }
+//     };
+
+//     timeline.forEach(incident => {
+//       if (!timelineMetrics.threatLevelBreakdown[incident.Threat_Level]) {
+//         timelineMetrics.threatLevelBreakdown[incident.Threat_Level] = 0;
+//       }
+//       timelineMetrics.threatLevelBreakdown[incident.Threat_Level]++;
+//     });
+
+//     res.json({
+//       success: true,
+//       metrics: timelineMetrics,
+//       timeline
+//     });
+//   } catch (error) {
+//     next(createError(500, 'Error retrieving incident timeline'));
+//   }
+// };
