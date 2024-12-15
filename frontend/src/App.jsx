@@ -7,15 +7,17 @@ import Sidebar from './Components/Sidebar';
 import AuthPage from './Components/AuthPage';
 import Profile from './Components/Profile';
 import Incidents from './Components/Incidents';
-
-// import MapView from './Components/MapView';
 import Timeline from './Components/Timeline';
 import SectorAnalysis from './Components/Sector';
 import IncidentDetails from './Components/IncidentDetail';
+
+
 import './index.css';
 
 
 import Dashboard from './Components/Dashboard'
+import ReportsList from './Components/Reports'
+import ReportsDetail from './Components/ReportDetail';
 
 
 const PrivateRoute = ({ children }) => {
@@ -46,6 +48,7 @@ function App() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/profile"
           element={
@@ -87,6 +90,26 @@ function App() {
             </PrivateRoute>
           }
         />
+        
+        <Route
+          path="/reports"
+          element={
+            <PrivateRoute>
+              <ReportsList />
+            </PrivateRoute>
+          }
+        />
+
+<Route
+          path="/reports/:id"
+          element={
+            <PrivateRoute>
+              <ReportsDetail />
+            </PrivateRoute>
+          }
+        />
+
+      
          
 
         

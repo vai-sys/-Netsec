@@ -8,7 +8,7 @@ const ReportsDetail = () => {
   const [report, setReport] = useState(null);
 
   useEffect(() => {
-    // Fetch report details (replace with actual API call)
+    
     const mockReport = {
       id: 'RPT-1001',
       incidentType: 'Security Breach',
