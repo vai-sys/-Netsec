@@ -1,4 +1,8 @@
+
+
+
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const ReportSchema = new mongoose.Schema({
   Reporter: {
@@ -43,20 +47,37 @@ const ReportSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+
 ReportSchema.pre('save', async function(next) {
+ 
   if (this.isNew) {
     try {
-      const lastReport = await this.constructor.findOne().sort({ createdAt: -1 });
-      const newReportNumber = lastReport
-        ? parseInt(lastReport.Report_ID.split('-')[1]) + 1
-        : 1000;
+    
+      const lastReport = await this.constructor.findOne({}, { Report_ID: 1 })
+        .sort({ createdAt: -1 })
+        .lean();
+      
+      let newReportNumber = 1000;
+      
+      if (lastReport && lastReport.Report_ID) {
+    
+        const match = lastReport.Report_ID.match(/RPT-(\d+)/);
+        if (match && match[1]) {
+          newReportNumber = parseInt(match[1], 10) + 1;
+        }
+      }
+      
       this.Report_ID = `RPT-${newReportNumber}`;
     } catch (error) {
-      return next(error);
+      console.error('Error generating Report_ID:', error);
+     
+      const timestamp = Math.floor(Date.now() / 1000);
+      this.Report_ID = `RPT-${timestamp}`;
     }
   }
   next();
 });
 
-const Report = mongoose.model('Report', ReportSchema);
-module.exports = Report;
+ReportSchema.plugin(mongoosePaginate);
+
+module.exports = mongoose.models.Report || mongoose.model('Report', ReportSchema);

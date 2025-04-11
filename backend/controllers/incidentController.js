@@ -1,4 +1,4 @@
-const Incident = require('../model/Incident');
+const Incident = require('../model/Incidentmodel');
 const mongoose = require('mongoose');
 
 const createError = require('http-errors');

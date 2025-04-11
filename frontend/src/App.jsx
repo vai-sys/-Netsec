@@ -10,6 +10,7 @@ import Incidents from './Components/Incidents';
 import Timeline from './Components/Timeline';
 import SectorAnalysis from './Components/Sector';
 import IncidentDetails from './Components/IncidentDetail';
+import CreateReport from './Components/Createreport';
 
 
 import './index.css';
@@ -18,6 +19,8 @@ import './index.css';
 import Dashboard from './Components/Dashboard'
 import ReportsList from './Components/Reports'
 import ReportsDetail from './Components/ReportDetail';
+
+import Dash from './Components/dash'
 
 
 const PrivateRoute = ({ children }) => {
@@ -38,6 +41,7 @@ function App() {
       <Routes>
      
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/dash" element={<Dash />} />
 
         
         <Route
@@ -65,6 +69,15 @@ function App() {
             </PrivateRoute>
           }
         />
+          <Route
+          path="/create-report"
+          element={
+            <PrivateRoute>
+              <CreateReport />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/incidents/:id"
           element={

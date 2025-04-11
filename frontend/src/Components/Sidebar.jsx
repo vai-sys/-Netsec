@@ -11,10 +11,11 @@ const Sidebar = () => {
     { icon: <User className="w-6 h-6" />, text: 'Profile', path: '/profile' },     
     { icon: <AlertTriangle className="w-6 h-6" />, text: 'Incidents', path: '/incidents' },     
     { icon: <FileText className="w-6 h-6" />, text: 'Reports', path: '/reports' },
-    { icon: <PlusCircle className="w-6 h-6" />, text: 'New Report', path: '/reports/create' }, 
+    // { icon: <PlusCircle className="w-6 h-6" />, text: 'New Report', path: '/reports/create' }, 
     // { icon: <Map className="w-6 h-6" />, text: 'Map View', path: '/map' },     
     { icon: <Clock className="w-6 h-6" />, text: 'Timeline', path: '/timeline' },     
-    { icon: <BarChart2 className="w-6 h-6" />, text: 'Sector Analysis', path: '/sector' }   
+    { icon: <BarChart2 className="w-6 h-6" />, text: 'Sector Analysis', path: '/sector' } ,
+    {icon:<BarChart2 classname='w-6 h-6'/>, text:'Create report' ,path:'/create-report'}  
   ];    
 
   return (     

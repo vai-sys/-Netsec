@@ -40,6 +40,7 @@ const Incidents = () => {
         }
 
         const data = await response.json();
+        console.log("data",data)
         setIncidents(data.incidents);
         setTotalPages(data.totalPages);
         setLoading(false);
@@ -112,11 +113,14 @@ const Incidents = () => {
               className="px-4 py-2 rounded bg-gray-800 text-white"
             >
               <option value="">Filter by Sector</option>
-              <option value="IT">IT</option>
+              <option value="IT">IT and Telecommunication</option>
               <option value="Finance">Finance</option>
-              <option value="Healthcare">Healthcare</option>
+              <option value="Healthcare">Defense</option>
               <option value="Energy">Energy</option>
-              {/* Add other sectors as needed */}
+              <option value="Telecommunication">Telecommunication</option>
+              <option value="space">Space</option>
+              <option value="Government agencies">Government agencies</option>
+             
             </select>
           </div>
         </div>
